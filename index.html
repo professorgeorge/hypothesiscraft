@@ -1,0 +1,1431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Hypothesis Scaffold &middot; A Workbook for Research Questions</title>
+<style>
+  /* ---------- Reset & roots ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  :root {
+    --paper:        #f1eadb;
+    --paper-edge:   #e6dcc6;
+    --card:         #fbf7ec;
+    --card-shadow:  0 1px 0 #fff inset, 0 2px 18px rgba(60, 40, 10, 0.08), 0 0 0 1px #e3d8bd;
+    --ink:          #1c2230;
+    --ink-soft:     #4a4a3f;
+    --ink-faint:    #8a8270;
+    --rule:         #d8cdb1;
+    --accent:       #7e1c1c;       /* red ink */
+    --accent-soft:  #b1614a;
+    --indigo:       #1f3a5c;       /* blue ink */
+    --indigo-soft:  #4a6c8e;
+    --good:         #2f5d3a;
+    --warn:         #8a5a14;
+    --bad:          #8b1f1f;
+
+    --serif:  "Iowan Old Style", "Palatino Linotype", Palatino, "URW Palladio L", P052, Georgia, serif;
+    --sans:   ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono:   ui-monospace, "SF Mono", "Menlo", "Consolas", monospace;
+  }
+
+  /* ---------- Page ---------- */
+  body {
+    font-family: var(--serif);
+    color: var(--ink);
+    background:
+      radial-gradient(1200px 600px at 20% -10%, rgba(255,255,255,0.5), transparent 60%),
+      radial-gradient(900px 600px at 110% 20%, rgba(220,180,120,0.18), transparent 55%),
+      var(--paper);
+    background-attachment: fixed;
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+  /* faint paper texture made of tiny dots */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(60,40,10,0.06) 1px, transparent 1px);
+    background-size: 3px 3px;
+    mix-blend-mode: multiply;
+    opacity: 0.55;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 48px 28px 96px;
+  }
+
+  /* ---------- Masthead ---------- */
+  .masthead {
+    border-top: 3px double var(--ink);
+    border-bottom: 1px solid var(--rule);
+    padding: 18px 0 14px;
+    margin-bottom: 28px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 16px;
+  }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(28px, 4.6vw, 46px);
+    line-height: 1.05;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .masthead h1 em {
+    color: var(--accent);
+    font-style: italic;
+  }
+  .masthead .meta {
+    font-family: var(--sans);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-faint);
+    text-align: right;
+  }
+  .deck {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 17px;
+    margin: 14px 0 0;
+    max-width: 70ch;
+  }
+
+  /* ---------- Layout grid ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+  @media (max-width: 880px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Card ---------- */
+  .card {
+    background: var(--card);
+    border-radius: 2px;
+    box-shadow: var(--card-shadow);
+    padding: 28px 32px 28px;
+    position: relative;
+  }
+  .card + .card { margin-top: 24px; }
+
+  /* ---------- Stepper ---------- */
+  .stepper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    font-family: var(--sans);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-faint);
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--rule);
+  }
+  .stepper button {
+    appearance: none; background: none; border: 0; padding: 4px 6px;
+    font: inherit; color: inherit; cursor: pointer; border-radius: 2px;
+  }
+  .stepper button .num {
+    display: inline-block;
+    width: 18px; height: 18px;
+    line-height: 18px;
+    text-align: center;
+    border: 1px solid var(--rule);
+    border-radius: 50%;
+    font-family: var(--serif);
+    font-size: 11px;
+    margin-right: 6px;
+    color: var(--ink-soft);
+    background: #fff;
+  }
+  .stepper button.done .num {
+    background: var(--ink); color: var(--card); border-color: var(--ink);
+  }
+  .stepper button.active {
+    color: var(--accent);
+  }
+  .stepper button.active .num {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .stepper button:hover { color: var(--ink); }
+
+  /* ---------- Step content ---------- */
+  .step { display: none; animation: fadein 0.25s ease; }
+  .step.active { display: block; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .eyebrow {
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 8px;
+  }
+  .step h2 {
+    font-family: var(--serif);
+    font-size: 28px;
+    line-height: 1.15;
+    margin: 0 0 10px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  .step .lede {
+    color: var(--ink-soft);
+    margin: 0 0 22px;
+    max-width: 56ch;
+  }
+
+  label.field {
+    display: block;
+    margin: 18px 0 0;
+  }
+  label.field > .lab {
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: block;
+    margin-bottom: 6px;
+  }
+  label.field > .lab .req { color: var(--accent); margin-left: 2px; }
+
+  input[type="text"], textarea, select {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--ink);
+    background: #fffdf6;
+    border: 1px solid var(--rule);
+    border-bottom: 1px solid var(--ink-faint);
+    border-radius: 2px;
+    padding: 10px 12px;
+    width: 100%;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  textarea { min-height: 64px; resize: vertical; line-height: 1.45; }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--indigo);
+    background: #fff;
+  }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
+
+  /* radio group as pills */
+  .pills {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 4px;
+  }
+  .pills label {
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 7px 12px;
+    border: 1px solid var(--rule);
+    background: #fffdf6;
+    border-radius: 999px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .pills input { position: absolute; opacity: 0; pointer-events: none; }
+  .pills label:hover { border-color: var(--ink-soft); }
+  .pills input:checked + span { /* nothing - we handle via parent */ }
+  .pills label:has(input:checked) {
+    background: var(--ink);
+    color: var(--card);
+    border-color: var(--ink);
+  }
+
+  /* example chips for topic suggestions */
+  .chips {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+  }
+  .chips button {
+    font-family: var(--sans);
+    font-size: 12px;
+    padding: 5px 10px;
+    border: 1px dashed var(--rule);
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+  .chips button:hover {
+    border-style: solid;
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .chips .chip-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-right: 4px;
+    align-self: center;
+  }
+
+  /* marginalia-style hints */
+  .hint {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-soft);
+    border-left: 2px solid var(--accent);
+    padding: 6px 0 6px 14px;
+    margin: 18px 0 0;
+    background: linear-gradient(90deg, rgba(126,28,28,0.04), transparent);
+  }
+  .hint .tag {
+    font-family: var(--sans);
+    font-style: normal;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* nav buttons */
+  .nav {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  button.btn {
+    font-family: var(--sans);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    padding: 10px 18px;
+    border-radius: 2px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--card);
+    cursor: pointer;
+    transition: transform 0.08s, background 0.15s;
+  }
+  button.btn:hover { background: #000; }
+  button.btn:active { transform: translateY(1px); }
+  button.btn.ghost {
+    background: transparent;
+    color: var(--ink);
+  }
+  button.btn.ghost:hover { background: rgba(0,0,0,0.04); }
+  button.btn.accent {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  button.btn.accent:hover { background: #6a1414; }
+  button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .step-counter {
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- Draft panel ---------- */
+  .draft {
+    position: sticky;
+    top: 24px;
+  }
+  .draft .label {
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .draft .label::before {
+    content: ""; flex: 0 0 22px; border-top: 1px solid var(--rule); margin-right: 10px;
+  }
+  .draft .label::after {
+    content: ""; flex: 1; border-top: 1px solid var(--rule); margin-left: 10px;
+  }
+  .draft-card {
+    background: linear-gradient(180deg, #fffdf2, #fbf3da);
+    border: 1px solid var(--rule);
+    box-shadow: 0 1px 0 #fff inset, 0 8px 18px rgba(60,40,10,0.06);
+    padding: 22px 24px;
+    border-radius: 2px;
+  }
+  .draft-card h3 {
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+    font-weight: 700;
+  }
+  .draft-sentence {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0;
+  }
+  .ph {
+    color: var(--ink-faint);
+    font-style: italic;
+    background: rgba(126,28,28,0.06);
+    border-bottom: 1px dotted var(--accent);
+    padding: 0 3px;
+  }
+  .filled {
+    color: var(--indigo);
+    font-style: italic;
+  }
+
+  .scratch {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--rule);
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink-soft);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 12px;
+  }
+  .scratch dt {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 10px;
+    color: var(--ink-faint);
+    align-self: center;
+  }
+  .scratch dd {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 14px;
+    font-style: italic;
+  }
+  .scratch dd.empty {
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+
+  /* ---------- Output ---------- */
+  .output { display: none; margin-top: 32px; }
+  .output.active { display: block; }
+
+  .output h2 {
+    font-family: var(--serif);
+    font-size: 26px;
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+  .output .deck { margin: 0 0 18px; }
+
+  .hyp-block {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--indigo);
+    padding: 18px 22px;
+    margin: 14px 0;
+    border-radius: 2px;
+    position: relative;
+  }
+  .hyp-block.alt { border-left-color: var(--accent); }
+  .hyp-block.null { border-left-color: var(--ink-faint); background: #fbf6e8; }
+  .hyp-block .tag {
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .hyp-block .body {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0;
+  }
+  .hyp-block .body code {
+    font-family: var(--mono);
+    font-size: 14px;
+    background: rgba(31,58,92,0.08);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+  .hyp-block .copy {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: transparent;
+    border: 1px solid var(--rule);
+    padding: 4px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .hyp-block .copy:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .hyp-block .copy.done {
+    color: var(--good); border-color: var(--good);
+  }
+
+  /* checklist */
+  .checks { margin-top: 28px; }
+  .checks h3 {
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 10px;
+    font-weight: 600;
+  }
+  .checklist { list-style: none; padding: 0; margin: 0; }
+  .checklist li {
+    font-family: var(--serif);
+    font-size: 15px;
+    line-height: 1.4;
+    padding: 8px 0;
+    border-bottom: 1px dotted var(--rule);
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon {
+    font-family: var(--mono);
+    font-size: 14px;
+    width: 22px; height: 22px;
+    line-height: 20px;
+    text-align: center;
+    border: 1px solid;
+    border-radius: 50%;
+    margin-top: 1px;
+  }
+  .check-icon.pass { color: var(--good); border-color: var(--good); }
+  .check-icon.warn { color: var(--warn); border-color: var(--warn); }
+  .check-icon.fail { color: var(--bad);  border-color: var(--bad);  }
+  .checklist .note {
+    display: block;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  /* output toolbar */
+  .out-tools {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ---------- Examples drawer ---------- */
+  details.examples {
+    margin-top: 28px;
+    border-top: 1px solid var(--rule);
+    padding-top: 18px;
+  }
+  details.examples summary {
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+  details.examples summary::-webkit-details-marker { display: none; }
+  details.examples summary::before {
+    content: "+ ";
+    color: var(--accent);
+    font-weight: 700;
+  }
+  details.examples[open] summary::before { content: "− "; }
+  .ex-grid {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .ex-card {
+    background: #fffdf6;
+    border: 1px solid var(--rule);
+    padding: 12px 14px;
+    border-radius: 2px;
+    font-family: var(--serif);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .ex-card:hover {
+    border-color: var(--indigo);
+    background: #fff;
+  }
+  .ex-card .ex-title {
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .ex-card .ex-body {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+
+  /* footnote */
+  footer.colophon {
+    margin-top: 60px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+    text-align: center;
+  }
+
+  /* print styles */
+  @media print {
+    body { background: white; }
+    body::before { display: none; }
+    .stepper, .nav, .out-tools, .examples, .draft, .colophon { display: none !important; }
+    .grid { grid-template-columns: 1fr; }
+    .card { box-shadow: none; border: 1px solid #ccc; }
+    .step:not(.active) { display: block; page-break-inside: avoid; }
+    .output.active { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <h1>The Hypothesis <em>Scaffold</em></h1>
+      <p class="deck">A workbook that walks a research question from a hunch to a falsifiable claim. You bring the curiosity; this page handles the structure.</p>
+    </div>
+    <div class="meta">
+      Vol. I &middot; No. 1<br />
+      For Coursework &amp; Honest Work
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- ====================== LEFT: WORKING CARD ====================== -->
+    <main>
+      <div class="card">
+
+        <!-- Stepper -->
+        <nav class="stepper" id="stepper" aria-label="Progress">
+          <button data-step="0" class="active"><span class="num">1</span>Topic</button>
+          <button data-step="1"><span class="num">2</span>Population</button>
+          <button data-step="2"><span class="num">3</span>Variables</button>
+          <button data-step="3"><span class="num">4</span>How you&rsquo;ll measure</button>
+          <button data-step="4"><span class="num">5</span>Design</button>
+          <button data-step="5"><span class="num">6</span>Direction</button>
+          <button data-step="6"><span class="num">7</span>Result</button>
+        </nav>
+
+        <!-- ===== Step 0: Topic ===== -->
+        <section class="step active" data-step="0">
+          <p class="eyebrow">Step One</p>
+          <h2>Start with the rough idea.</h2>
+          <p class="lede">Most research begins as a topic, not a question. Write what you&rsquo;re curious about in your own words. We&rsquo;ll sharpen it together.</p>
+
+          <label class="field">
+            <span class="lab">Your broad topic <span class="req">*</span></span>
+            <input type="text" id="topic" placeholder="e.g. social media use and sleep among college students" autocomplete="off" />
+          </label>
+
+          <div class="chips">
+            <span class="chip-label">Try one:</span>
+            <button type="button" data-topic="social media use and sleep">social media &amp; sleep</button>
+            <button type="button" data-topic="caffeine intake and exam performance">caffeine &amp; exams</button>
+            <button type="button" data-topic="remote work and team cohesion">remote work &amp; team cohesion</button>
+            <button type="button" data-topic="green spaces and mental health in cities">green spaces &amp; mental health</button>
+            <button type="button" data-topic="gamified apps and language learning">gamified apps &amp; language learning</button>
+          </div>
+
+          <label class="field">
+            <span class="lab">What pulls you toward this topic? <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink-faint);">(one sentence; for your own clarity, not the hypothesis)</span></span>
+            <textarea id="why" placeholder="A pattern I&rsquo;ve noticed, a study I read, a problem in my community&hellip;"></textarea>
+          </label>
+
+          <div class="hint">
+            <span class="tag">Watch out for</span>
+            A topic isn&rsquo;t a hypothesis. &ldquo;Social media&rdquo; is a topic. &ldquo;Heavier evening Instagram use predicts shorter sleep duration in undergraduates&rdquo; is a hypothesis. The next steps will close that gap.
+          </div>
+
+          <div class="nav">
+            <span class="step-counter">1 of 7</span>
+            <div>
+              <button class="btn ghost" type="button" id="resetBtn">Reset</button>
+              <button class="btn" type="button" data-go="next">Next &rsaquo;</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Step 1: Population ===== -->
+        <section class="step" data-step="1">
+          <p class="eyebrow">Step Two</p>
+          <h2>Who is this <em>actually</em> about?</h2>
+          <p class="lede">A hypothesis applies to a defined population. &ldquo;People&rdquo; is a flag, not an answer. Add age, role, place, or condition until the group is recognizable.</p>
+
+          <label class="field">
+            <span class="lab">Population <span class="req">*</span></span>
+            <input type="text" id="population" placeholder="e.g. undergraduate students aged 18&ndash;22 at a U.S. university" autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span class="lab">Setting or context <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink-faint);">(optional, but it sharpens generalizability)</span></span>
+            <input type="text" id="context" placeholder="e.g. during a regular academic semester" autocomplete="off" />
+          </label>
+
+          <div class="hint">
+            <span class="tag">A useful test</span>
+            If a stranger read your population aloud, could they imagine three actual people who fit and three who don&rsquo;t? If yes, you&rsquo;re specific enough.
+          </div>
+
+          <div class="nav">
+            <span class="step-counter">2 of 7</span>
+            <div>
+              <button class="btn ghost" type="button" data-go="prev">&lsaquo; Back</button>
+              <button class="btn" type="button" data-go="next">Next &rsaquo;</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Step 2: Variables ===== -->
+        <section class="step" data-step="2">
+          <p class="eyebrow">Step Three</p>
+          <h2>Name the two things you think are linked.</h2>
+          <p class="lede">The independent variable is what you suspect does the influencing. The dependent variable is what changes in response. If you can&rsquo;t tell which is which, ask: &ldquo;Which one comes first in time?&rdquo;</p>
+
+          <div class="row">
+            <label class="field" style="margin-top:0;">
+              <span class="lab">Independent variable (the predictor) <span class="req">*</span></span>
+              <input type="text" id="iv" placeholder="e.g. evening social media use" autocomplete="off" />
+            </label>
+            <label class="field" style="margin-top:0;">
+              <span class="lab">Dependent variable (the outcome) <span class="req">*</span></span>
+              <input type="text" id="dv" placeholder="e.g. sleep duration" autocomplete="off" />
+            </label>
+          </div>
+
+          <div class="hint">
+            <span class="tag">Common trap</span>
+            Constructs vs. variables. &ldquo;Stress&rdquo; is a construct (a fuzzy idea). The variable is something specific like &ldquo;self-reported stress on a 10-point scale.&rdquo; Use the looser word here; we&rsquo;ll pin it down in the next step.
+          </div>
+
+          <div class="nav">
+            <span class="step-counter">3 of 7</span>
+            <div>
+              <button class="btn ghost" type="button" data-go="prev">&lsaquo; Back</button>
+              <button class="btn" type="button" data-go="next">Next &rsaquo;</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Step 3: Operationalization ===== -->
+        <section class="step" data-step="3">
+          <p class="eyebrow">Step Four</p>
+          <h2>Turn each variable into something you can <em>actually</em> count.</h2>
+          <p class="lede">This is where most hypotheses fall apart. If your variable can&rsquo;t be measured, it can&rsquo;t be tested. Pick a unit, an instrument, or a clear definition.</p>
+
+          <label class="field">
+            <span class="lab">How will you measure the predictor?</span>
+            <input type="text" id="ivMeasure" placeholder="e.g. minutes per night on social apps, self-reported via a sleep diary" autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span class="lab">How will you measure the outcome?</span>
+            <input type="text" id="dvMeasure" placeholder="e.g. total sleep time in hours, from Fitbit data" autocomplete="off" />
+          </label>
+
+          <div class="hint">
+            <span class="tag">A shortcut</span>
+            For each variable ask: &ldquo;What number, score, or category will I write down for each participant?&rdquo; If you can answer, you&rsquo;ve operationalized it.
+          </div>
+
+          <div class="nav">
+            <span class="step-counter">4 of 7</span>
+            <div>
+              <button class="btn ghost" type="button" data-go="prev">&lsaquo; Back</button>
+              <button class="btn" type="button" data-go="next">Next &rsaquo;</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Step 4: Design ===== -->
+        <section class="step" data-step="4">
+          <p class="eyebrow">Step Five</p>
+          <h2>How will you investigate this?</h2>
+          <p class="lede">This choice quietly governs which verbs you&rsquo;re allowed to use. Manipulation earns causal language. Observation earns associational language.</p>
+
+          <span class="lab" style="font-family:var(--sans); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-soft);">Study design</span>
+          <div class="pills" id="designPills" style="margin-top:8px;">
+            <label><input type="radio" name="design" value="experimental" /><span>Experimental (you control the predictor)</span></label>
+            <label><input type="radio" name="design" value="quasi" /><span>Quasi-experimental (groups exist, no random assignment)</span></label>
+            <label><input type="radio" name="design" value="correlational" checked /><span>Correlational (you measure both, manipulate neither)</span></label>
+          </div>
+
+          <div class="hint">
+            <span class="tag">Why this matters</span>
+            If you can&rsquo;t randomly assign participants to high vs. low social media use, you can&rsquo;t honestly say it &ldquo;causes&rdquo; anything. The honest verbs are <em>predicts</em>, <em>is associated with</em>, or <em>correlates with</em>. Saving you from a thesis revision later.
+          </div>
+
+          <div class="nav">
+            <span class="step-counter">5 of 7</span>
+            <div>
+              <button class="btn ghost" type="button" data-go="prev">&lsaquo; Back</button>
+              <button class="btn" type="button" data-go="next">Next &rsaquo;</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Step 5: Direction ===== -->
+        <section class="step" data-step="5">
+          <p class="eyebrow">Step Six</p>
+          <h2>Which way do you think it goes?</h2>
+          <p class="lede">A directional hypothesis is bolder and more useful, but it commits you. A non-directional one is safer if prior evidence is mixed. Pick what you can defend.</p>
+
+          <span class="lab" style="font-family:var(--sans); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-soft);">Predicted relationship</span>
+          <div class="pills" id="dirPills" style="margin-top:8px;">
+            <label><input type="radio" name="dir" value="positive" checked /><span>More predictor &rarr; more outcome</span></label>
+            <label><input type="radio" name="dir" value="negative" /><span>More predictor &rarr; less outcome</span></label>
+            <label><input type="radio" name="dir" value="nondirectional" /><span>Some relationship, direction unclear</span></label>
+          </div>
+
+          <div class="hint">
+            <span class="tag">Honest move</span>
+            If two solid studies disagree on direction, a non-directional hypothesis is the principled choice. Don&rsquo;t pick a direction just because it sounds confident.
+          </div>
+
+          <div class="nav">
+            <span class="step-counter">6 of 7</span>
+            <div>
+              <button class="btn ghost" type="button" data-go="prev">&lsaquo; Back</button>
+              <button class="btn accent" type="button" id="generateBtn">Build my hypothesis &rsaquo;</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Step 6: Output ===== -->
+        <section class="step" data-step="6">
+          <p class="eyebrow">Step Seven</p>
+          <h2>Your hypothesis, three ways.</h2>
+          <p class="lede">Below: a directional version (your main claim), a non-directional version (a more cautious form), and the null (the claim your test is technically trying to reject). Copy whichever fits your assignment, then revise the language to sound like you.</p>
+
+          <div id="output"></div>
+
+          <div class="checks">
+            <h3>Pre-flight check</h3>
+            <ul class="checklist" id="checklist"></ul>
+          </div>
+
+          <div class="out-tools">
+            <button class="btn" type="button" id="copyAllBtn">Copy all hypotheses</button>
+            <button class="btn ghost" type="button" id="downloadBtn">Download as .txt</button>
+            <button class="btn ghost" type="button" onclick="window.print()">Print</button>
+            <button class="btn ghost" type="button" data-go="prev">&lsaquo; Edit answers</button>
+            <button class="btn ghost" type="button" id="resetBtn2">Start over</button>
+          </div>
+        </section>
+
+        <!-- Worked examples -->
+        <details class="examples">
+          <summary>Worked examples (load one to see how the pieces fit)</summary>
+          <div class="ex-grid" id="exGrid"></div>
+        </details>
+
+      </div>
+    </main>
+
+    <!-- ====================== RIGHT: LIVE DRAFT ====================== -->
+    <aside>
+      <div class="draft">
+        <p class="label">Live draft</p>
+        <div class="draft-card">
+          <h3>Hypothesis, in progress</h3>
+          <p class="draft-sentence" id="draftSentence"></p>
+
+          <dl class="scratch" id="scratch">
+            <dt>Topic</dt><dd id="s-topic" class="empty">&mdash;</dd>
+            <dt>Population</dt><dd id="s-pop" class="empty">&mdash;</dd>
+            <dt>Predictor</dt><dd id="s-iv" class="empty">&mdash;</dd>
+            <dt>Outcome</dt><dd id="s-dv" class="empty">&mdash;</dd>
+            <dt>Design</dt><dd id="s-design" class="empty">&mdash;</dd>
+            <dt>Direction</dt><dd id="s-dir" class="empty">&mdash;</dd>
+          </dl>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <footer class="colophon">
+    Set in Iowan Old Style and your system sans &middot; No tracking, no network, no opinions of its own &middot; Edit, share, modify freely.
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- State ----------
+  const state = {
+    step: 0,
+    topic: '',
+    why: '',
+    population: '',
+    context: '',
+    iv: '',
+    dv: '',
+    ivMeasure: '',
+    dvMeasure: '',
+    design: 'correlational',
+    direction: 'positive'
+  };
+  const TOTAL_STEPS = 7;
+
+  // ---------- DOM helpers ----------
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  // ---------- Step navigation ----------
+  function showStep(n) {
+    n = Math.max(0, Math.min(TOTAL_STEPS - 1, n));
+    state.step = n;
+
+    $$('.step').forEach(el => el.classList.remove('active'));
+    $$(`.step[data-step="${n}"]`).forEach(el => el.classList.add('active'));
+
+    // stepper visuals
+    $$('#stepper button').forEach(b => {
+      const i = Number(b.dataset.step);
+      b.classList.toggle('active', i === n);
+      b.classList.toggle('done', i < n);
+    });
+
+    // scroll the card into nice view on small screens
+    if (window.innerWidth < 880) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  // ---------- Wire inputs to state ----------
+  const fields = ['topic', 'why', 'population', 'context', 'iv', 'dv', 'ivMeasure', 'dvMeasure'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      state[id] = el.value.trim();
+      updateDraft();
+    });
+  });
+
+  $$('#designPills input').forEach(r => {
+    r.addEventListener('change', () => {
+      if (r.checked) { state.design = r.value; updateDraft(); }
+    });
+  });
+  $$('#dirPills input').forEach(r => {
+    r.addEventListener('change', () => {
+      if (r.checked) { state.direction = r.value; updateDraft(); }
+    });
+  });
+
+  // ---------- Topic chip suggestions ----------
+  $$('.chips button').forEach(b => {
+    b.addEventListener('click', () => {
+      const t = b.dataset.topic;
+      const ti = $('#topic');
+      ti.value = t;
+      ti.dispatchEvent(new Event('input'));
+    });
+  });
+
+  // ---------- Step button wiring ----------
+  $$('[data-go="next"]').forEach(b => b.addEventListener('click', () => showStep(state.step + 1)));
+  $$('[data-go="prev"]').forEach(b => b.addEventListener('click', () => showStep(state.step - 1)));
+
+  $$('#stepper button').forEach(b => {
+    b.addEventListener('click', () => {
+      // only allow jumping back, or one ahead from where you are
+      const target = Number(b.dataset.step);
+      if (target <= state.step + 1) showStep(target);
+    });
+  });
+
+  // ---------- Generate ----------
+  $('#generateBtn').addEventListener('click', () => {
+    buildOutput();
+    showStep(6);
+  });
+
+  // ---------- Reset ----------
+  function resetAll() {
+    Object.assign(state, {
+      step: 0, topic: '', why: '', population: '', context: '',
+      iv: '', dv: '', ivMeasure: '', dvMeasure: '',
+      design: 'correlational', direction: 'positive'
+    });
+    fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    const corr = document.querySelector('#designPills input[value="correlational"]'); if (corr) corr.checked = true;
+    const pos = document.querySelector('#dirPills input[value="positive"]'); if (pos) pos.checked = true;
+    $('#output').innerHTML = '';
+    $('#checklist').innerHTML = '';
+    updateDraft();
+    showStep(0);
+  }
+  $('#resetBtn').addEventListener('click', resetAll);
+  $('#resetBtn2').addEventListener('click', resetAll);
+
+  // ---------- Live draft ----------
+  function placeholder(text, fallback) {
+    if (text && text.length) return `<span class="filled">${escapeHtml(text)}</span>`;
+    return `<span class="ph">[${fallback}]</span>`;
+  }
+
+  function fillScratch(id, val) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (val) {
+      el.textContent = val;
+      el.classList.remove('empty');
+    } else {
+      el.textContent = '\u2014';
+      el.classList.add('empty');
+    }
+  }
+
+  function updateDraft() {
+    const verb = verbFor(state.design, state.direction, /*forDraft*/ true);
+    const popPhrase = state.population
+      ? (state.context ? `${state.population} ${state.context.toLowerCase().startsWith('during ') || state.context.toLowerCase().startsWith('in ') || state.context.toLowerCase().startsWith('at ') ? state.context : 'in ' + state.context}` : state.population)
+      : '';
+
+    const sentence =
+      `Among ${placeholder(popPhrase, 'population')}, ` +
+      `${placeholder(state.iv, 'predictor')} ${verb} ${placeholder(state.dv, 'outcome')}.`;
+
+    $('#draftSentence').innerHTML = sentence;
+
+    fillScratch('s-topic', state.topic);
+    fillScratch('s-pop', state.population);
+    fillScratch('s-iv', state.iv);
+    fillScratch('s-dv', state.dv);
+    fillScratch('s-design', labelFor('design', state.design));
+    fillScratch('s-dir', labelFor('dir', state.direction));
+  }
+
+  function labelFor(group, val) {
+    const map = {
+      design: { experimental: 'experimental', quasi: 'quasi-experimental', correlational: 'correlational' },
+      dir:    { positive: 'positive', negative: 'negative', nondirectional: 'non-directional' }
+    };
+    return map[group][val] || '';
+  }
+
+  // ---------- Verb selection ----------
+  // Returns the verb phrase that links IV and DV in the alternative hypothesis,
+  // tuned by study design and predicted direction.
+  function verbFor(design, dir, forDraft) {
+    const causal = design === 'experimental';
+    const quasi  = design === 'quasi';
+
+    if (dir === 'positive') {
+      if (causal)  return 'will increase';
+      if (quasi)   return 'will be associated with higher';
+      return 'will be positively associated with';
+    }
+    if (dir === 'negative') {
+      if (causal)  return 'will decrease';
+      if (quasi)   return 'will be associated with lower';
+      return 'will be negatively associated with';
+    }
+    // non-directional
+    if (causal)  return 'will produce a change in';
+    return 'will be associated with';
+  }
+
+  // For null, simpler:
+  function nullVerb(design) {
+    if (design === 'experimental') return 'will not produce a change in';
+    return 'will not be associated with';
+  }
+
+  // ---------- Build output ----------
+  function buildOutput() {
+    const popPhrase = composePopulation();
+    const ivOp = state.ivMeasure ? `${state.iv} (${state.ivMeasure})` : state.iv;
+    const dvOp = state.dvMeasure ? `${state.dv} (${state.dvMeasure})` : state.dv;
+
+    const directional = makeSentence(popPhrase, state.iv, state.dv, verbFor(state.design, state.direction));
+    const nonDir      = makeSentence(popPhrase, state.iv, state.dv, verbFor(state.design, 'nondirectional'));
+    const nullH       = makeSentence(popPhrase, state.iv, state.dv, nullVerb(state.design));
+    const operational = makeSentence(popPhrase, ivOp,    dvOp,    verbFor(state.design, state.direction));
+
+    const blocks = [
+      {
+        cls: 'alt',
+        tag: state.direction === 'nondirectional' ? 'Alternative hypothesis (H₁) — non-directional' : 'Alternative hypothesis (H₁) — directional',
+        body: directional
+      }
+    ];
+    if (state.direction !== 'nondirectional') {
+      blocks.push({
+        cls: '',
+        tag: 'Alternative hypothesis (H₁) — non-directional, more cautious',
+        body: nonDir
+      });
+    }
+    blocks.push({
+      cls: 'null',
+      tag: 'Null hypothesis (H₀) — what your test technically tries to reject',
+      body: nullH
+    });
+    blocks.push({
+      cls: '',
+      tag: 'Operationalized version — paste this into a methods section',
+      body: operational
+    });
+
+    const html = blocks.map((b, i) => `
+      <div class="hyp-block ${b.cls}">
+        <div class="tag">${b.tag}</div>
+        <p class="body">${escapeHtml(b.body)}</p>
+        <button class="copy" data-copy="${i}">Copy</button>
+      </div>
+    `).join('');
+    $('#output').innerHTML = html;
+
+    // wire copy buttons
+    $$('#output .copy').forEach((btn, i) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(blocks[i].body);
+          btn.textContent = 'Copied';
+          btn.classList.add('done');
+          setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
+        } catch (e) {
+          // fallback
+          const ta = document.createElement('textarea');
+          ta.value = blocks[i].body;
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); } catch (_) {}
+          document.body.removeChild(ta);
+          btn.textContent = 'Copied';
+          btn.classList.add('done');
+          setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
+        }
+      });
+    });
+
+    // store for download / copy-all
+    window.__hyps = blocks;
+
+    runChecks();
+  }
+
+  function composePopulation() {
+    if (!state.population) return '[population]';
+    if (!state.context) return state.population;
+    const c = state.context.trim();
+    const lower = c.toLowerCase();
+    if (lower.startsWith('during ') || lower.startsWith('in ') || lower.startsWith('at ') || lower.startsWith('within ')) {
+      return `${state.population} ${c}`;
+    }
+    return `${state.population} during ${c}`;
+  }
+
+  function makeSentence(pop, x, y, verb) {
+    const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+    return `Among ${pop}, ${x || '[predictor]'} ${verb} ${y || '[outcome]'}.`.replace(/  +/g, ' ');
+  }
+
+  // ---------- Pre-flight checks ----------
+  function runChecks() {
+    const checks = [];
+
+    // 1. Population specificity
+    const popLower = state.population.toLowerCase();
+    const vague = ['people', 'individuals', 'humans', 'persons', 'subjects', 'everyone'];
+    const isVague = vague.some(w => popLower === w || popLower.startsWith(w + ' ') || popLower.endsWith(' ' + w) || popLower.split(/[ ,]/).filter(t => t === w).length === popLower.split(/[ ,]/).length);
+    const popWords = popLower.split(/\s+/).filter(Boolean).length;
+    if (!state.population) {
+      checks.push({ st: 'fail', text: 'Population is missing.', note: 'Step 2 needs a defined group. Even a rough one is better than &ldquo;people.&rdquo;' });
+    } else if (isVague || popWords < 2) {
+      checks.push({ st: 'warn', text: 'Population may be too vague.', note: 'Try adding age, role, or setting. &ldquo;People&rdquo; rarely passes peer review.' });
+    } else {
+      checks.push({ st: 'pass', text: 'Population is specific enough to imagine.', note: '' });
+    }
+
+    // 2. Variables present
+    if (state.iv && state.dv) {
+      checks.push({ st: 'pass', text: 'Both variables are named.', note: '' });
+    } else {
+      checks.push({ st: 'fail', text: 'A variable is missing.', note: 'You need both a predictor and an outcome.' });
+    }
+
+    // 3. Operationalization
+    if (state.ivMeasure && state.dvMeasure) {
+      checks.push({ st: 'pass', text: 'Both variables are operationalized.', note: 'You can write a methods section from this.' });
+    } else if (state.ivMeasure || state.dvMeasure) {
+      checks.push({ st: 'warn', text: 'Only one variable has a clear measure.', note: 'Add a unit or instrument for the other one too.' });
+    } else {
+      checks.push({ st: 'warn', text: 'Neither variable is operationalized.', note: 'A hypothesis without measurable variables can&rsquo;t be tested. Revisit step 4.' });
+    }
+
+    // 4. Causal language vs. design
+    if (state.design === 'correlational' && state.direction !== 'nondirectional') {
+      checks.push({ st: 'pass', text: 'Verbs match the design.', note: 'Your correlational design produced associational language. Honest.' });
+    } else if (state.design === 'experimental') {
+      checks.push({ st: 'pass', text: 'Causal language is appropriate.', note: 'Random assignment earns you words like &ldquo;causes&rdquo; and &ldquo;produces.&rdquo;' });
+    } else {
+      checks.push({ st: 'pass', text: 'Quasi-experimental phrasing applied.', note: 'You can talk about differences between groups, but stop short of strong causal claims.' });
+    }
+
+    // 5. Falsifiability heuristic
+    const text = (state.iv + ' ' + state.dv).toLowerCase();
+    const fluff = ['better', 'good', 'bad', 'great', 'amazing', 'meaningful', 'important'];
+    const hasFluff = fluff.some(w => text.split(/\W+/).includes(w));
+    if (hasFluff) {
+      checks.push({ st: 'warn', text: 'Soft words detected in your variables.', note: 'Words like &ldquo;better&rdquo; or &ldquo;meaningful&rdquo; resist measurement. Replace with the underlying number or rating.' });
+    } else if (state.iv && state.dv) {
+      checks.push({ st: 'pass', text: 'Variables look concrete enough to falsify.', note: 'A study could in principle return a result that disagrees with your prediction.' });
+    }
+
+    // 6. Direction stated
+    if (state.direction === 'nondirectional') {
+      checks.push({ st: 'warn', text: 'You chose non-directional.', note: 'Fine if prior evidence is mixed. If you have a real prior expectation, a directional hypothesis is more informative.' });
+    } else {
+      checks.push({ st: 'pass', text: 'Direction is committed.', note: 'You&rsquo;re predicting which way the relationship runs. Be ready to defend it.' });
+    }
+
+    // render
+    const ul = $('#checklist');
+    const icons = { pass: '✓', warn: '!', fail: '×' };
+    ul.innerHTML = checks.map(c => `
+      <li>
+        <span class="check-icon ${c.st}">${icons[c.st]}</span>
+        <span>${c.text}${c.note ? `<span class="note">${c.note}</span>` : ''}</span>
+      </li>
+    `).join('');
+  }
+
+  // ---------- Copy all / download ----------
+  $('#copyAllBtn').addEventListener('click', async () => {
+    if (!window.__hyps) return;
+    const txt = formatPlain();
+    try {
+      await navigator.clipboard.writeText(txt);
+      flash($('#copyAllBtn'), 'Copied to clipboard');
+    } catch (e) {
+      flash($('#copyAllBtn'), 'Copy failed');
+    }
+  });
+  $('#downloadBtn').addEventListener('click', () => {
+    const txt = formatPlain();
+    const blob = new Blob([txt], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'hypothesis-scaffold.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  function formatPlain() {
+    const lines = [];
+    lines.push('HYPOTHESIS SCAFFOLD');
+    lines.push('===================');
+    lines.push('');
+    lines.push('Topic: ' + (state.topic || '(none)'));
+    lines.push('Population: ' + (state.population || '(none)'));
+    if (state.context) lines.push('Context: ' + state.context);
+    lines.push('Predictor (IV): ' + (state.iv || '(none)') + (state.ivMeasure ? ' — measured as: ' + state.ivMeasure : ''));
+    lines.push('Outcome (DV): ' + (state.dv || '(none)') + (state.dvMeasure ? ' — measured as: ' + state.dvMeasure : ''));
+    lines.push('Design: ' + state.design);
+    lines.push('Direction: ' + state.direction);
+    lines.push('');
+    if (window.__hyps) {
+      window.__hyps.forEach(b => {
+        lines.push(b.tag.replace(/—/g, '-'));
+        lines.push(b.body);
+        lines.push('');
+      });
+    }
+    return lines.join('\n');
+  }
+
+  function flash(btn, msg) {
+    const old = btn.textContent;
+    btn.textContent = msg;
+    setTimeout(() => { btn.textContent = old; }, 1600);
+  }
+
+  // ---------- Examples ----------
+  const examples = [
+    {
+      title: 'Education',
+      summary: 'Spaced practice & vocabulary retention',
+      payload: {
+        topic: 'spaced practice and vocabulary retention',
+        why: 'I noticed I remember words better when I review them across days.',
+        population: 'first-year university students learning Spanish',
+        context: 'across a 4-week semester unit',
+        iv: 'spacing of vocabulary review sessions',
+        dv: 'long-term word retention',
+        ivMeasure: 'days between review sessions (1, 3, or 7)',
+        dvMeasure: 'percent correct on a 30-item recall test, two weeks after final review',
+        design: 'experimental',
+        direction: 'positive'
+      }
+    },
+    {
+      title: 'Public Health',
+      summary: 'Green space exposure & stress',
+      payload: {
+        topic: 'urban green space and stress',
+        why: 'City parks seem to help, but it might be self-selection.',
+        population: 'adults aged 25-50 living in dense urban neighborhoods',
+        context: 'over a single workweek',
+        iv: 'time spent in green spaces',
+        dv: 'self-reported stress',
+        ivMeasure: 'minutes per day in parks, GPS-logged',
+        dvMeasure: 'daily PSS-10 stress score',
+        design: 'correlational',
+        direction: 'negative'
+      }
+    },
+    {
+      title: 'Workplace',
+      summary: 'Remote work & team cohesion',
+      payload: {
+        topic: 'remote work and team cohesion',
+        why: 'Mixed reports from different industries; worth pinning down.',
+        population: 'software engineers in mid-sized tech companies',
+        context: 'over a 6-month period',
+        iv: 'proportion of work hours done remotely',
+        dv: 'perceived team cohesion',
+        ivMeasure: 'percent of weekly hours not in a shared office',
+        dvMeasure: 'Group Environment Questionnaire score (1-9)',
+        design: 'correlational',
+        direction: 'nondirectional'
+      }
+    },
+    {
+      title: 'Behavioral',
+      summary: 'Caffeine & exam performance',
+      payload: {
+        topic: 'caffeine and exam performance',
+        why: 'I want to know if my pre-exam coffee actually helps.',
+        population: 'undergraduate students aged 18-22',
+        context: 'during midterm week',
+        iv: 'caffeine intake before an exam',
+        dv: 'exam score',
+        ivMeasure: 'milligrams of caffeine in the 90 minutes before the exam',
+        dvMeasure: 'final percentage on a standardized course exam',
+        design: 'quasi',
+        direction: 'positive'
+      }
+    }
+  ];
+
+  function renderExamples() {
+    const grid = $('#exGrid');
+    grid.innerHTML = examples.map((ex, i) => `
+      <button class="ex-card" data-ex="${i}" type="button">
+        <div class="ex-title">${ex.title}</div>
+        <div class="ex-body">${ex.summary}</div>
+      </button>
+    `).join('');
+    $$('.ex-card').forEach(card => {
+      card.addEventListener('click', () => loadExample(Number(card.dataset.ex)));
+    });
+  }
+
+  function loadExample(i) {
+    const ex = examples[i];
+    if (!ex) return;
+    Object.assign(state, ex.payload);
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && state[id] != null) el.value = state[id];
+    });
+    const dRadio = document.querySelector(`#designPills input[value="${state.design}"]`);
+    if (dRadio) dRadio.checked = true;
+    const dirRadio = document.querySelector(`#dirPills input[value="${state.direction}"]`);
+    if (dirRadio) dirRadio.checked = true;
+    updateDraft();
+    buildOutput();
+    showStep(6);
+  }
+
+  // ---------- utilities ----------
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  }
+
+  // ---------- init ----------
+  renderExamples();
+  updateDraft();
+})();
+</script>
+</body>
+</html>
